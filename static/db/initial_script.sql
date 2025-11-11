@@ -21,7 +21,7 @@ DROP TABLE IF EXISTS Organization;
 CREATE TABLE Organization(
 	id SERIAL PRIMARY KEY,
 	name VARCHAR(500) NOT NULL,
-	sity VARCHAR(50) NOT NULL DEFAULT 'Москва'
+	city VARCHAR(50) NOT NULL DEFAULT 'Москва'
 );
 
 CREATE TABLE Worker(
