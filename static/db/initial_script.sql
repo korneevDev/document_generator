@@ -20,14 +20,14 @@ DROP TABLE IF EXISTS Organization;
 
 CREATE TABLE Organization(
 	id SERIAL PRIMARY KEY,
-	name VARCHAR(500),
-	sity VARCHAR(50)
+	name VARCHAR(500) NOT NULL,
+	sity VARCHAR(50) NOT NULL DEFAULT 'Москва'
 );
 
 CREATE TABLE Worker(
 	id SERIAL PRIMARY KEY,
-	name VARCHAR(100),
-	second_name VARCHAR(100),
+	name VARCHAR(100) NOT NULL,
+	second_name VARCHAR(100) NOT NULL,
 	surname VARCHAR(100)
 );
 
@@ -49,12 +49,12 @@ CREATE TABLE Fgos(
 
 CREATE TABLE "Program"(
 	id SERIAL PRIMARY KEY,
-	"group" SMALLINT,
-	"level" SMALLINT,
-	"number" SMALLINT,
+	"group" VARCHAR(5),
+	"level" VARCHAR(5),
+	"number" VARCHAR(5),
+	profile_name VARCHAR(20) DEFAULT Null,
+	profile_code SMALLINT DEFAULT Null,
 	name VARCHAR(200),
-	profile_code SMALLINT,
-	profile_name VARCHAR(100),
 	fgos_id INT REFERENCES Fgos(id)
 );
 
@@ -70,8 +70,8 @@ CREATE TABLE ProgramOrganization(
 CREATE TABLE Skill(
 	id SERIAL PRIMARY KEY,
 	"type" VARCHAR(10),
-	code SMALLINT,
-	name VARCHAR(200),
+	code VARCHAR(5),
+	name TEXT,
 	root_skill INT REFERENCES Skill(id),
 	program_id INT REFERENCES "Program"(id)
 );
