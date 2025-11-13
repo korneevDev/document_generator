@@ -6,8 +6,8 @@ import pdfplumber
 import psycopg2
 from datetime import datetime
 
-from view_types.program import Program
-from view_types.skills import Skill, CommonProfSkills, ProfessionalSkills
+from domain_types.program import Program
+from domain_types.skills import Skill, CommonProfSkills, ProfessionalSkills
 
 
 # === 1. Настройки подключения к БД ===

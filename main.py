@@ -1,18 +1,14 @@
 import datetime
-from dataclasses import dataclass, field
-import time
-from typing import Any
 
 from docx.text.paragraph import Paragraph
 from docxtpl import DocxTemplate
-import os
 
-from view_types.chapters import Chapter, Theme, Lesson, SelfWorkTheme, SelfWorkPracticeTheme, PracticeLesson
-from view_types.doc_task_model import DocumentTask
-from view_types.organization import Organization, Worker, Department
-from view_types.program import Program
-from view_types.skills import AimPersonalSkills, Skill, ProfessionalSkills, Results
-from view_types.subject import Subject, Room, Books, ExamQuestions
+from domain_types.chapters import Chapter, Theme, Lesson, SelfWorkTheme, SelfWorkPracticeTheme, PracticeLesson
+from domain_types.organization import Organization, Worker, Department
+from domain_types.subject import Subject, Room, Books, ExamQuestions
+from view_types.doc_task_view_model import DocumentTaskView
+from view_types.program_view_model import ProgramViewModel
+from view_types.view_skill_type import SkillView, AimPersonalSkillsView, ProfessionalSkillsView, ResultsView
 
 
 def remove_marked_rows(doc, marker="{delete}"):
@@ -104,7 +100,7 @@ def generate_document_with_deletion(template_path, output_path, context):
 
 # Пример использования с простыми переменными
 if __name__ == "__main__":
-    docTask = DocumentTask(
+    docTask = DocumentTaskView(
         '{delete}',
         Organization(
         'Автономная некоммерческая организация '
@@ -122,13 +118,13 @@ if __name__ == "__main__":
                    Worker('Комышан', 'Пётр', 'Иванович')
                    ),
         2000,
-        Program(
+        ProgramViewModel(
             '09.02.07',
             'Информационные системы и программирование',
-            'Программист',
-            2,
             1547,
             '26 декабря 2016',
+            'Программист',
+            2,
         ),
         Subject(
             'ОП.09',
@@ -169,32 +165,32 @@ if __name__ == "__main__":
                 ]
             )
         ),
-        AimPersonalSkills(
+        AimPersonalSkillsView(
             [
-                Skill('ОК 1',
+                SkillView('ОК 1',
                       'Понимать сущность и социальную значимость своей будущей профессии, проявлять к ней устойчивый интерес.'),
-                Skill('ОК 2',
+                SkillView('ОК 2',
                       'Организовывать собственную деятельность, выбирать типовые методы и способы выполнения профессиональных задач, оценивать их выполнение и качество.'),
-                Skill('ОК 3',
+                SkillView('ОК 3',
                       'Принимать решения в стандартных и нестандартных ситуациях и нести за них ответственность.')
             ],
-            ProfessionalSkills(
+            ProfessionalSkillsView(
                 'ВД 2',
                 'Администрирование баз данных',
                 [
-                    Skill('ПК 2.1', 'Выявлять проблемы, возникающие в процессе эксплуатации баз данных'),
-                    Skill('ПК 2.3',
+                    SkillView('ПК 2.1', 'Выявлять проблемы, возникающие в процессе эксплуатации баз данных'),
+                    SkillView('ПК 2.3',
                           'Проводить аудит систем безопасности баз данных с использованием регламентов по защите информации.')
                 ]
             ),
             [
-                Skill('ЛР 1', 'Быть крутым челом')
+                SkillView('ЛР 1', 'Быть крутым челом')
             ],
             [
-                Skill('ЦО 1', 'Быть целевым челом')
+                SkillView('ЦО 1', 'Быть целевым челом')
             ],
         ),
-        Results(
+        ResultsView(
             ['анализировать угрозы информационной безопасности',
              'применять базовые методы защиты информации',
              'использовать антивирусные и межсетевые средства защиты'],
@@ -285,7 +281,7 @@ if __name__ == "__main__":
     )
 
     generate_document_with_deletion(
-        "templates/template_op.docx",
+        "templates/cesi_template_op.docx",
         f"output/{docTask.subject.code}_{docTask.year}_{datetime.datetime.now().strftime('%H-%M-%S')}.docx",
         docTask.__dict__
     )
