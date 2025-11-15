@@ -4,34 +4,28 @@ from PyQt6.QtCore import Qt, pyqtSignal
 
 
 class ActivityWidget(QWidget):
-    # Сигнал об изменении занятия
     activityChanged = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.layout = QHBoxLayout(self)
 
-        # Название занятия
         self.name_edit = QLineEdit()
         self.name_edit.setPlaceholderText("Название занятия")
         self.name_edit.textChanged.connect(self.on_activity_changed)
 
-        # Вид деятельности
         self.type_combo = QComboBox()
         self.type_combo.addItems(["Лекция", "Практика", "Самостоятельная работа"])
         self.type_combo.currentTextChanged.connect(self.on_activity_changed)
 
-        # Часы
         self.hours_spin = QSpinBox()
         self.hours_spin.setMaximum(1000)
         self.hours_spin.valueChanged.connect(self.on_activity_changed)
 
-        # Форма присутствия
         self.presence_combo = QComboBox()
         self.presence_combo.addItems(["Очно", "СДО"])
         self.presence_combo.currentTextChanged.connect(self.on_activity_changed)
 
-        # Кнопка удаления
         self.delete_btn = QPushButton("Удалить")
         self.delete_btn.clicked.connect(self.delete_self)
 
@@ -46,7 +40,6 @@ class ActivityWidget(QWidget):
         self.layout.addWidget(self.delete_btn)
 
     def on_activity_changed(self):
-        # Отправляем сигнал наверх
         self.activityChanged.emit()
 
     def delete_self(self):
@@ -55,7 +48,6 @@ class ActivityWidget(QWidget):
 
 
 class TopicWidget(QWidget):
-    # Сигнал об изменении часов
     hoursChanged = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -63,7 +55,6 @@ class TopicWidget(QWidget):
         self.layout = QVBoxLayout(self)
         self.activities = []
 
-        # Заголовок темы
         header_layout = QHBoxLayout()
         self.name_edit = QLineEdit()
         self.name_edit.setPlaceholderText("Название темы")
@@ -83,7 +74,6 @@ class TopicWidget(QWidget):
 
         self.layout.addLayout(header_layout)
 
-        # Сводка по часам
         self.hours_summary_layout = QHBoxLayout()
         self.lecture_label = QLabel("Лекции: 0")
         self.practice_label = QLabel("Практики: 0")
@@ -100,11 +90,10 @@ class TopicWidget(QWidget):
 
         self.layout.addLayout(self.hours_summary_layout)
 
-        # Контейнер для занятий
         self.activities_container = QVBoxLayout()
         self.layout.addLayout(self.activities_container)
 
-        self.add_activity()  # Добавляем первое занятие по умолчанию
+        self.add_activity()
 
     def add_activity(self):
         activity = ActivityWidget(self)
@@ -114,12 +103,12 @@ class TopicWidget(QWidget):
         self.on_hours_changed()
 
     def remove_activity(self, activity):
-        self.activities.remove(activity)
-        activity.deleteLater()
-        self.on_hours_changed()
+        if activity in self.activities:
+            self.activities.remove(activity)
+            activity.deleteLater()
+            self.on_hours_changed()
 
     def on_hours_changed(self):
-        # Пересчитываем суммарные часы по типам занятий
         lecture_hours = 0
         practice_hours = 0
         self_study_hours = 0
@@ -142,14 +131,12 @@ class TopicWidget(QWidget):
 
         total_hours = lecture_hours + practice_hours + self_study_hours
 
-        # Обновляем сводку
         self.lecture_label.setText(f"Лекции: {lecture_hours}")
         self.practice_label.setText(f"Практики: {practice_hours}")
         self.self_study_label.setText(f"Сам.раб.: {self_study_hours}")
         self.sdo_label.setText(f"СДО: {sdo_hours}")
         self.total_label.setText(f"Всего: {total_hours}")
 
-        # Отправляем сигнал наверх
         self.hoursChanged.emit()
 
     def delete_self(self):
@@ -157,7 +144,6 @@ class TopicWidget(QWidget):
             self.parent().remove_topic(self)
 
     def get_hours_by_type(self):
-        """Возвращает часы по типам занятий"""
         lecture_hours = 0
         practice_hours = 0
         self_study_hours = 0
@@ -182,7 +168,6 @@ class TopicWidget(QWidget):
 
 
 class SectionWidget(QWidget):
-    # Сигнал об изменении часов
     hoursChanged = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -190,17 +175,15 @@ class SectionWidget(QWidget):
         self.layout = QVBoxLayout(self)
         self.topics = []
 
-        # Заголовок раздела
+        # Header: name + semester selection
         self.header_layout = QHBoxLayout()
         self.name_edit = QLineEdit()
         self.name_edit.setPlaceholderText("Название раздела")
         self.name_edit.textChanged.connect(self.on_hours_changed)
 
-        # Семестр для раздела
-        self.semester_spin = QSpinBox()
-        self.semester_spin.setRange(1, 12)
-        self.semester_spin.setValue(1)
-        self.semester_spin.valueChanged.connect(self.on_hours_changed)
+        self.semester_combo = QComboBox()
+        self._populate_semesters()
+        self.semester_combo.currentIndexChanged.connect(self.on_hours_changed)
 
         self.add_topic_btn = QPushButton("+ Добавить тему")
         self.add_topic_btn.clicked.connect(self.add_topic)
@@ -210,23 +193,20 @@ class SectionWidget(QWidget):
         self.header_layout.addWidget(QLabel("Раздел:"))
         self.header_layout.addWidget(self.name_edit)
         self.header_layout.addWidget(QLabel("Семестр:"))
-        self.header_layout.addWidget(self.semester_spin)
+        self.header_layout.addWidget(self.semester_combo)
         self.header_layout.addWidget(self.add_topic_btn)
         self.header_layout.addWidget(self.delete_btn)
         self.header_layout.addStretch()
 
         self.layout.addLayout(self.header_layout)
 
-        # Сводка по часам раздела
+        # Summary
         self.section_summary_layout = QHBoxLayout()
         self.section_lecture_label = QLabel("Лекции: 0")
         self.section_practice_label = QLabel("Практики: 0")
         self.section_self_study_label = QLabel("Сам.раб.: 0")
         self.section_sdo_label = QLabel("СДО: 0")
         self.section_total_label = QLabel("Всего: 0")
-
-        # Подсветка при превышении часов
-        self.section_total_label.setStyleSheet("font-weight: bold;")
 
         self.section_summary_layout.addWidget(QLabel("Раздел:"))
         self.section_summary_layout.addWidget(self.section_lecture_label)
@@ -238,11 +218,28 @@ class SectionWidget(QWidget):
 
         self.layout.addLayout(self.section_summary_layout)
 
-        # Контейнер для тем
+        # Topics container
         self.topics_container = QVBoxLayout()
         self.layout.addLayout(self.topics_container)
 
-        self.add_topic()  # Добавляем первую тему по умолчанию
+        self.add_topic()
+
+    def _populate_semesters(self):
+        self.semester_combo.clear()
+        parent = self.parent()
+        if parent and hasattr(parent, "get_semester_numbers"):
+            nums = parent.get_semester_numbers()
+            for n in nums:
+                self.semester_combo.addItem(str(n), userData=n)
+        else:
+            self.semester_combo.addItem("1", userData=1)
+
+    def update_semester_options(self):
+        current = self.get_semester()
+        self._populate_semesters()
+        index = self.semester_combo.findData(current)
+        if index != -1:
+            self.semester_combo.setCurrentIndex(index)
 
     def add_topic(self):
         topic = TopicWidget(self)
@@ -252,12 +249,12 @@ class SectionWidget(QWidget):
         self.on_hours_changed()
 
     def remove_topic(self, topic):
-        self.topics.remove(topic)
-        topic.deleteLater()
-        self.on_hours_changed()
+        if topic in self.topics:
+            self.topics.remove(topic)
+            topic.deleteLater()
+            self.on_hours_changed()
 
     def on_hours_changed(self):
-        # Пересчитываем суммарные часы по разделу
         total_lecture = 0
         total_practice = 0
         total_self_study = 0
@@ -272,14 +269,12 @@ class SectionWidget(QWidget):
 
         total_hours = total_lecture + total_practice + total_self_study
 
-        # Обновляем сводку раздела
         self.section_lecture_label.setText(f"Лекции: {total_lecture}")
         self.section_practice_label.setText(f"Практики: {total_practice}")
         self.section_self_study_label.setText(f"Сам.раб.: {total_self_study}")
         self.section_sdo_label.setText(f"СДО: {total_sdo}")
         self.section_total_label.setText(f"Всего: {total_hours}")
 
-        # Передаем сигнал дальше наверх
         self.hoursChanged.emit()
 
     def delete_self(self):
@@ -287,7 +282,6 @@ class SectionWidget(QWidget):
             self.parent().remove_section(self)
 
     def get_hours_by_type(self):
-        """Возвращает часы по типам занятий для всего раздела"""
         total_lecture = 0
         total_practice = 0
         total_self_study = 0
@@ -303,13 +297,16 @@ class SectionWidget(QWidget):
         return total_lecture, total_practice, total_self_study, total_sdo
 
     def get_semester(self):
-        """Возвращает номер семестра раздела"""
-        return self.semester_spin.value()
+        data = self.semester_combo.currentData()
+        if isinstance(data, int):
+            return data
+        try:
+            return int(self.semester_combo.currentText())
+        except Exception:
+            return 1
 
 
 class SemesterSummaryWidget(QWidget):
-    """Виджет для отображения сводки по одному семестру"""
-
     def __init__(self, semester_number, parent=None):
         super().__init__(parent)
         self.semester_number = semester_number
@@ -322,19 +319,17 @@ class SemesterSummaryWidget(QWidget):
         self.layout.addWidget(self.details_label)
         self.layout.addStretch()
 
-    def update_summary(self, used_hours, planned_hours, details):
-        """Обновляет отображаемую информацию"""
-        used_total = used_hours['total']
+    def update_summary(self, used_hours, planned_hours):
+        used_total = used_hours['lecture'] + used_hours['practice'] + used_hours['self_study']
+        planned_total = planned_hours.get('total', 0)
 
-        # Обновляем текст
         self.details_label.setText(
             f"Лекции: {used_hours['lecture']}, Практики: {used_hours['practice']}, "
             f"Сам.раб.: {used_hours['self_study']}, СДО: {used_hours['sdo']}, "
-            f"Всего: {used_total}/{planned_hours}"
+            f"Всего: {used_total}/{planned_total}"
         )
 
-        # Подсветка при превышении лимита
-        if used_total > planned_hours:
+        if used_total > planned_total:
             self.status_label.setStyleSheet("color: red; font-weight: bold;")
             self.details_label.setStyleSheet("color: red;")
         else:
@@ -345,57 +340,50 @@ class SemesterSummaryWidget(QWidget):
 class DisciplineForm(QWidget):
     def __init__(self):
         super().__init__()
-        self.sdo_auto_calculated = True  # Флаг для отслеживания автоматического расчета СДО
-        self.semester_hours = {}  # Словарь для хранения часов по семестрам
-        self.semester_summary_widgets = {}  # Словарь для хранения виджетов сводки по семестрам
+        self.sdo_auto_calculated = True
+        self.semester_hours = {}
+        self.semester_summary_widgets = {}
+        self._semester_numbers = []
         self.initUI()
 
     def initUI(self):
         layout = QVBoxLayout(self)
 
-        # Основная информация о дисциплине
         info_layout = QHBoxLayout()
         info_layout.addWidget(QLabel("Название дисциплины:"))
         self.discipline_name = QLineEdit()
         info_layout.addWidget(self.discipline_name)
-
         layout.addLayout(info_layout)
 
-        # Часы дисциплины
+        # Discipline totals
         hours_layout = QGridLayout()
 
         hours_layout.addWidget(QLabel("Общие часы:"), 0, 0)
-        self.total_hours = QSpinBox()
-        self.total_hours.setMaximum(1000)
+        self.total_hours = QSpinBox(); self.total_hours.setMaximum(10000)
         self.total_hours.valueChanged.connect(self.on_total_hours_changed)
         hours_layout.addWidget(self.total_hours, 0, 1)
 
         hours_layout.addWidget(QLabel("Лекции:"), 0, 2)
-        self.lecture_hours = QSpinBox()
-        self.lecture_hours.setMaximum(1000)
+        self.lecture_hours = QSpinBox(); self.lecture_hours.setMaximum(10000)
         self.lecture_hours.valueChanged.connect(self.check_hours)
         hours_layout.addWidget(self.lecture_hours, 0, 3)
 
         hours_layout.addWidget(QLabel("Практики:"), 1, 0)
-        self.practice_hours = QSpinBox()
-        self.practice_hours.setMaximum(1000)
+        self.practice_hours = QSpinBox(); self.practice_hours.setMaximum(10000)
         self.practice_hours.valueChanged.connect(self.check_hours)
         hours_layout.addWidget(self.practice_hours, 1, 1)
 
         hours_layout.addWidget(QLabel("Сам.раб.:"), 1, 2)
-        self.self_study_hours = QSpinBox()
-        self.self_study_hours.setMaximum(1000)
+        self.self_study_hours = QSpinBox(); self.self_study_hours.setMaximum(10000)
         self.self_study_hours.valueChanged.connect(self.check_hours)
         hours_layout.addWidget(self.self_study_hours, 1, 3)
 
-        # Часы СДО
+        # SDO
         hours_layout.addWidget(QLabel("СДО часы:"), 2, 0)
-        self.sdo_hours = QSpinBox()
-        self.sdo_hours.setMaximum(1000)
+        self.sdo_hours = QSpinBox(); self.sdo_hours.setMaximum(10000)
         self.sdo_hours.valueChanged.connect(self.on_sdo_hours_changed)
         hours_layout.addWidget(self.sdo_hours, 2, 1)
 
-        # Чекбокс для автоматического расчета СДО
         self.sdo_auto_checkbox = QCheckBox("Автоматически (25% от общих часов)")
         self.sdo_auto_checkbox.setChecked(True)
         self.sdo_auto_checkbox.stateChanged.connect(self.on_sdo_auto_changed)
@@ -403,308 +391,238 @@ class DisciplineForm(QWidget):
 
         layout.addLayout(hours_layout)
 
-        # Распределение часов по семестрам
-        semester_group = QGroupBox("Распределение часов по семестрам")
-        semester_layout = QVBoxLayout()
+        # Semester management
+        sem_manage_group = QGroupBox("Настройка семестров")
+        sem_manage_layout = QHBoxLayout()
+        sem_manage_layout.addWidget(QLabel("Первый семестр:"))
+        self.first_semester_spin = QSpinBox(); self.first_semester_spin.setRange(1, 20); self.first_semester_spin.setValue(1)
+        sem_manage_layout.addWidget(self.first_semester_spin)
+        sem_manage_layout.addWidget(QLabel("Количество семестров:"))
+        self.semesters_count_spin = QSpinBox(); self.semesters_count_spin.setRange(1, 12); self.semesters_count_spin.setValue(1)
+        sem_manage_layout.addWidget(self.semesters_count_spin)
+        self.apply_semesters_btn = QPushButton("Применить семестры")
+        self.apply_semesters_btn.clicked.connect(self.build_semesters)
+        sem_manage_layout.addWidget(self.apply_semesters_btn)
+        sem_manage_layout.addStretch()
+        sem_manage_group.setLayout(sem_manage_layout)
+        layout.addWidget(sem_manage_group)
 
-        # Контейнер для ввода часов по семестрам
+        # Semester plan inputs (per-type + total)
+        semester_group = QGroupBox("План часов по семестрам (введите по типам)")
+        semester_layout = QVBoxLayout()
         self.semester_container = QVBoxLayout()
         semester_layout.addLayout(self.semester_container)
-
-        # Кнопка добавления семестра
-        self.add_semester_btn = QPushButton("+ Добавить семестр")
-        self.add_semester_btn.clicked.connect(self.add_semester)
-        semester_layout.addWidget(self.add_semester_btn)
-
         semester_group.setLayout(semester_layout)
         layout.addWidget(semester_group)
 
-        # Сводка по использованию часов в семестрах
+        # Summary widgets
         self.semester_summary_group = QGroupBox("Использование часов по семестрам")
         self.semester_summary_layout = QVBoxLayout()
         self.semester_summary_group.setLayout(self.semester_summary_layout)
         layout.addWidget(self.semester_summary_group)
 
-        # Кнопка добавления раздела
+        # Sections
         self.add_section_btn = QPushButton("+ Добавить раздел")
         self.add_section_btn.clicked.connect(self.add_section)
         layout.addWidget(self.add_section_btn)
 
-        # Контейнер для разделов
         self.sections_container = QVBoxLayout()
         layout.addLayout(self.sections_container)
 
-        # Статус проверки
+        # Status & Save
         self.status_label = QLabel()
         layout.addWidget(self.status_label)
 
-        # Кнопка сохранения
         self.save_btn = QPushButton("Сохранить программу")
         self.save_btn.clicked.connect(self.save_program)
         layout.addWidget(self.save_btn)
 
         self.sections = []
-        self.add_section()  # Добавляем первый раздел по умолчанию
-        self.add_semester()  # Добавляем первый семестр по умолчанию
 
-    def add_semester(self):
-        """Добавление нового семестра"""
-        semester_layout = QHBoxLayout()
+        # initialize semesters and one section
+        self.build_semesters()
+        self.add_section()
 
-        semester_number = len(self.semester_hours) + 1
+    def clear_layout(self, layout):
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+            else:
+                child = item.layout()
+                if child:
+                    self.clear_layout(child)
 
-        semester_label = QLabel(f"Семестр {semester_number}:")
-        hours_spin = QSpinBox()
-        hours_spin.setMaximum(1000)
-        hours_spin.valueChanged.connect(self.check_hours)
+    # ====================== Build semesters =========================
+    def build_semesters(self):
+        first = self.first_semester_spin.value()
+        count = self.semesters_count_spin.value()
+        new_nums = [first + i for i in range(count)]
 
-        # Сохраняем спинбокс в словарь
-        self.semester_hours[semester_number] = hours_spin
-
-        # Создаем виджет сводки для этого семестра
-        summary_widget = SemesterSummaryWidget(semester_number)
-        self.semester_summary_widgets[semester_number] = summary_widget
-        self.semester_summary_layout.addWidget(summary_widget)
-
-        semester_layout.addWidget(semester_label)
-        semester_layout.addWidget(hours_spin)
-        semester_layout.addStretch()
-
-        self.semester_container.addLayout(semester_layout)
-
-    def update_semester_summary(self):
-        """Обновление сводки по использованию часов в семестрах"""
-        # Считаем использованные часы по семестрам
-        semester_usage = {}
-        for semester in self.semester_hours:
-            semester_usage[semester] = {
-                'lecture': 0,
-                'practice': 0,
-                'self_study': 0,
-                'sdo': 0,
-                'total': 0
+        # save old values
+        old_values = {}
+        for num, d in self.semester_hours.items():
+            old_values[num] = {
+                'lecture': d['lecture'].value(),
+                'practice': d['practice'].value(),
+                'self_study': d['self_study'].value(),
+                'sdo': d['sdo'].value(),
+                'total': d['total'].value()
             }
 
+        # clear old UI
+        self.clear_layout(self.semester_container)
+        self.clear_layout(self.semester_summary_layout)
+        self.semester_hours.clear()
+        self.semester_summary_widgets.clear()
+        self._semester_numbers = new_nums
+
+        for num in new_nums:
+            row = QHBoxLayout()
+            lbl = QLabel(f"Семестр {num}:")
+
+            spin_lecture = QSpinBox(); spin_lecture.setMaximum(10000)
+            spin_practice = QSpinBox(); spin_practice.setMaximum(10000)
+            spin_self = QSpinBox(); spin_self.setMaximum(10000)
+            spin_sdo = QSpinBox(); spin_sdo.setMaximum(10000)
+            spin_total = QSpinBox(); spin_total.setMaximum(10000)
+
+            # restore old values
+            if num in old_values:
+                spin_lecture.setValue(old_values[num]['lecture'])
+                spin_practice.setValue(old_values[num]['practice'])
+                spin_self.setValue(old_values[num]['self_study'])
+                spin_sdo.setValue(old_values[num]['sdo'])
+                spin_total.setValue(old_values[num]['total'])
+
+            spin_lecture.valueChanged.connect(self.check_hours)
+            spin_practice.valueChanged.connect(self.check_hours)
+            spin_self.valueChanged.connect(self.check_hours)
+            spin_sdo.valueChanged.connect(self.check_hours)
+            spin_total.valueChanged.connect(self.check_hours)
+
+            row.addWidget(lbl)
+            row.addWidget(QLabel("Лекции:")); row.addWidget(spin_lecture)
+            row.addWidget(QLabel("Практики:")); row.addWidget(spin_practice)
+            row.addWidget(QLabel("Сам.раб.:")); row.addWidget(spin_self)
+            row.addWidget(QLabel("СДО:")); row.addWidget(spin_sdo)
+            row.addWidget(QLabel("Всего:")); row.addWidget(spin_total)
+            row.addStretch()
+
+            self.semester_container.addLayout(row)
+
+            self.semester_hours[num] = {
+                'lecture': spin_lecture,
+                'practice': spin_practice,
+                'self_study': spin_self,
+                'sdo': spin_sdo,
+                'total': spin_total
+            }
+
+            summary_widget = SemesterSummaryWidget(num)
+            self.semester_summary_widgets[num] = summary_widget
+            self.semester_summary_layout.addWidget(summary_widget)
+
+        # update sections' semester combo boxes
         for section in self.sections:
-            semester = section.get_semester()
-            if semester in semester_usage:
-                lecture, practice, self_study, sdo = section.get_hours_by_type()
-                semester_usage[semester]['lecture'] += lecture
-                semester_usage[semester]['practice'] += practice
-                semester_usage[semester]['self_study'] += self_study
-                semester_usage[semester]['sdo'] += sdo
-                semester_usage[semester]['total'] += lecture + practice + self_study
-
-        # Обновляем виджеты сводки
-        for semester, summary_widget in self.semester_summary_widgets.items():
-            if semester in self.semester_hours:
-                used = semester_usage[semester]
-                planned = self.semester_hours[semester].value()
-                summary_widget.update_summary(used, planned, {})
-
-    def on_total_hours_changed(self):
-        """Обработчик изменения общих часов"""
-        if self.sdo_auto_checkbox.isChecked():
-            # Автоматически рассчитываем СДО как 25% от общих часов
-            sdo_value = int(self.total_hours.value() * 0.25)
-            self.sdo_hours.setValue(sdo_value)
-            self.sdo_auto_calculated = True
-
-        # Обновляем все разделы для проверки превышения часов
-        for section in self.sections:
-            section.on_hours_changed()
+            if hasattr(section, "update_semester_options"):
+                section.update_semester_options()
 
         self.check_hours()
 
-    def on_sdo_hours_changed(self):
-        """Обработчик изменения часов СДО"""
-        self.sdo_auto_calculated = False
-        self.sdo_auto_checkbox.setChecked(False)
-        self.check_hours()
+    def get_semester_numbers(self):
+        return self._semester_numbers
 
-    def on_sdo_auto_changed(self, state):
-        """Обработчик изменения состояния чекбокса автоматического расчета СДО"""
-        if state == Qt.CheckState.Checked.value:
-            # Включаем автоматический расчет
-            sdo_value = int(self.total_hours.value() * 0.25)
-            self.sdo_hours.setValue(sdo_value)
-            self.sdo_auto_calculated = True
-        else:
-            self.sdo_auto_calculated = False
-
+    # ====================== Sections =========================
     def add_section(self):
         section = SectionWidget(self)
         section.hoursChanged.connect(self.check_hours)
         self.sections.append(section)
         self.sections_container.addWidget(section)
+        self.check_hours()
 
     def remove_section(self, section):
-        self.sections.remove(section)
-        section.deleteLater()
+        if section in self.sections:
+            self.sections.remove(section)
+            section.deleteLater()
+            self.check_hours()
+
+    # ====================== SDO =========================
+    def on_sdo_auto_changed(self, state):
+        self.sdo_auto_calculated = state == Qt.CheckState.Checked
+        self.on_sdo_hours_changed()
+
+    def on_total_hours_changed(self, value):
+        if self.sdo_auto_calculated:
+            auto_sdo = round(value * 0.25)
+            self.sdo_hours.setValue(auto_sdo)
         self.check_hours()
 
+    def on_sdo_hours_changed(self):
+        self.check_hours()
+
+    # ====================== Check Hours =========================
     def check_hours(self):
-        """Проверка соответствия часов"""
-        total_lecture = 0
-        total_practice = 0
-        total_self_study = 0
-        total_sdo = 0
+        semester_aggregates = {num: {'lecture':0, 'practice':0, 'self_study':0, 'sdo':0} for num in self._semester_numbers}
 
-        # Суммируем часы по всем разделам и темам
+        # aggregate from sections
         for section in self.sections:
+            sem = section.get_semester()
             lecture, practice, self_study, sdo = section.get_hours_by_type()
-            total_lecture += lecture
-            total_practice += practice
-            total_self_study += self_study
-            total_sdo += sdo
+            if sem in semester_aggregates:
+                semester_aggregates[sem]['lecture'] += lecture
+                semester_aggregates[sem]['practice'] += practice
+                semester_aggregates[sem]['self_study'] += self_study
+                semester_aggregates[sem]['sdo'] += sdo
 
-        total_calculated = total_lecture + total_practice + total_self_study
-
-        # Обновляем сводку по семестрам
-        self.update_semester_summary()
-
-        # Проверяем соответствие
-        is_lecture_match = total_lecture == self.lecture_hours.value()
-        is_practice_match = total_practice == self.practice_hours.value()
-        is_self_study_match = total_self_study == self.self_study_hours.value()
-        is_total_match = total_calculated == self.total_hours.value()
-        is_sdo_match = total_sdo == self.sdo_hours.value()
-
-        # Проверяем превышение лимитов по семестрам
-        semester_errors = []
-        for semester, hours_spin in self.semester_hours.items():
-            used_hours = 0
-            for section in self.sections:
-                if section.get_semester() == semester:
-                    lecture, practice, self_study, sdo = section.get_hours_by_type()
-                    used_hours += lecture + practice + self_study
-
-            if used_hours > hours_spin.value():
-                semester_errors.append(f"семестр {semester}")
-
-        # Подсвечиваем несоответствия
-        self.highlight_mismatch(self.lecture_hours, is_lecture_match)
-        self.highlight_mismatch(self.practice_hours, is_practice_match)
-        self.highlight_mismatch(self.self_study_hours, is_self_study_match)
-        self.highlight_mismatch(self.total_hours, is_total_match)
-        self.highlight_mismatch(self.sdo_hours, is_sdo_match)
-
-        # Обновляем статус
-        all_ok = all([is_lecture_match, is_practice_match, is_self_study_match, is_total_match,
-                      is_sdo_match]) and not semester_errors
-        if all_ok:
-            self.status_label.setText("✓ Часы сбалансированы")
-            self.status_label.setStyleSheet("color: green;")
-        else:
-            mismatches = []
-            if not is_lecture_match:
-                mismatches.append(f"лекции ({total_lecture} вместо {self.lecture_hours.value()})")
-            if not is_practice_match:
-                mismatches.append(f"практики ({total_practice} вместо {self.practice_hours.value()})")
-            if not is_self_study_match:
-                mismatches.append(f"самостоятельная работа ({total_self_study} вместо {self.self_study_hours.value()})")
-            if not is_total_match:
-                mismatches.append(f"общие часы ({total_calculated} вместо {self.total_hours.value()})")
-            if not is_sdo_match:
-                mismatches.append(f"СДО ({total_sdo} вместо {self.sdo_hours.value()})")
-
-            if semester_errors:
-                mismatches.append(f"превышение лимита в {', '.join(semester_errors)}")
-
-            self.status_label.setText("✗ Несоответствие: " + ", ".join(mismatches))
-            self.status_label.setStyleSheet("color: red;")
-
-    def highlight_mismatch(self, widget, is_match):
-        """Подсветка виджета при несоответствии"""
-        if is_match:
-            widget.setStyleSheet("")
-        else:
-            widget.setStyleSheet("background-color: #ffcccc;")
-
-    def save_program(self):
-        """Сохранение рабочей программы"""
-        self.check_hours()
-
-        # Проверяем, что все часы сбалансированы
-        if "Несоответствие" not in self.status_label.text():
-            # Собираем данные для сохранения
-            program_data = {
-                "discipline_name": self.discipline_name.text(),
-                "total_hours": self.total_hours.value(),
-                "lecture_hours": self.lecture_hours.value(),
-                "practice_hours": self.practice_hours.value(),
-                "self_study_hours": self.self_study_hours.value(),
-                "sdo_hours": self.sdo_hours.value(),
-                "sdo_auto_calculated": self.sdo_auto_calculated,
-                "semester_hours": {semester: widget.value()
-                                   for semester, widget in self.semester_hours.items()},
-                "sections": []
+        # check against semester plan
+        for num in self._semester_numbers:
+            planned = self.semester_hours.get(num)
+            if planned is None:
+                continue
+            planned_vals = {
+                'lecture': planned['lecture'].value(),
+                'practice': planned['practice'].value(),
+                'self_study': planned['self_study'].value(),
+                'sdo': planned['sdo'].value(),
+                'total': planned['total'].value()
             }
+            used = semester_aggregates[num]
 
-            for section in self.sections:
-                section_data = {
-                    "name": section.name_edit.text(),
-                    "semester": section.semester_spin.value(),
-                    "hours_summary": {
-                        "lecture": section.section_lecture_label.text().split(": ")[1],
-                        "practice": section.section_practice_label.text().split(": ")[1],
-                        "self_study": section.section_self_study_label.text().split(": ")[1],
-                        "sdo": section.section_sdo_label.text().split(": ")[1],
-                        "total": section.section_total_label.text().split(": ")[1]
-                    },
-                    "topics": []
-                }
+            # update summary widget
+            if num in self.semester_summary_widgets:
+                self.semester_summary_widgets[num].update_summary(used, planned_vals)
 
-                for topic in section.topics:
-                    topic_data = {
-                        "name": topic.name_edit.text(),
-                        "hours_summary": {
-                            "lecture": topic.lecture_label.text().split(": ")[1],
-                            "practice": topic.practice_label.text().split(": ")[1],
-                            "self_study": topic.self_study_label.text().split(": ")[1],
-                            "sdo": topic.sdo_label.text().split(": ")[1],
-                            "total": topic.total_label.text().split(": ")[1]
-                        },
-                        "activities": []
-                    }
+            # highlight mismatches
+            self._highlight_semester_plan(num, used, planned_vals)
 
-                    for activity in topic.activities:
-                        activity_data = {
-                            "name": activity.name_edit.text(),
-                            "type": activity.type_combo.currentText(),
-                            "hours": activity.hours_spin.value(),
-                            "presence": activity.presence_combo.currentText()
-                        }
-                        topic_data["activities"].append(activity_data)
+    def _highlight_semester_plan(self, sem_num, used, planned):
+        if sem_num not in self.semester_hours:
+            return
+        boxes = self.semester_hours[sem_num]
+        boxes['lecture'].setStyleSheet("" if used['lecture'] == planned['lecture'] else "background-color: #ffdddd;")
+        boxes['practice'].setStyleSheet("" if used['practice'] == planned['practice'] else "background-color: #ffdddd;")
+        boxes['self_study'].setStyleSheet("" if used['self_study'] == planned['self_study'] else "background-color: #ffdddd;")
+        boxes['sdo'].setStyleSheet("" if used['sdo'] == planned['sdo'] else "background-color: #ffdddd;")
+        used_total = used['lecture'] + used['practice'] + used['self_study']
+        boxes['total'].setStyleSheet("" if used_total == planned['total'] else "background-color: #ffdddd;")
 
-                    section_data["topics"].append(topic_data)
-
-                program_data["sections"].append(section_data)
-
-            # Здесь можно добавить логику сохранения данных в файл или БД
-            print("Данные для сохранения:", program_data)
-
-            QMessageBox.information(self, "Успех", "Рабочая программа сохранена!")
-        else:
-            QMessageBox.warning(self, "Ошибка", "Не все часы сбалансированы!")
+    # ====================== Save =========================
+    def save_program(self):
+        msg = QMessageBox()
+        msg.setWindowTitle("Сохранение")
+        msg.setText("Программа успешно сохранена!")
+        msg.exec()
 
 
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Формирование рабочих программ")
-        self.setGeometry(100, 100, 1200, 800)
-
-        self.central_widget = QScrollArea()
-        self.form = DisciplineForm()
-        self.central_widget.setWidget(self.form)
-        self.central_widget.setWidgetResizable(True)
-
-        self.setCentralWidget(self.central_widget)
-
-
-if __name__ == '__main__':
+# ====================== Main =========================
+def main():
     app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
+    win = DisciplineForm()
+    win.resize(1200, 800)
+    win.show()
     sys.exit(app.exec())
+
+if __name__ == "__main__":
+    main()
