@@ -30,8 +30,8 @@ class Skill:
 class ProfessionalSkills(Skill):
     skills: list[Skill]
 
-    def get_db_list(self, program_id: int, func_get_activity_id, cursor, table_name):
-        activity_id = func_get_activity_id(
+    def get_db_list(self, program_id: int, func_get_lesson_id, cursor, table_name):
+        activity_id = func_get_lesson_id(
             cursor=cursor, table_name=table_name, data={
                 'type': self.type, 'code': self.code,
                 'name': self.name, 'program_id': program_id,

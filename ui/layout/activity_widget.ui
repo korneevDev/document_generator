@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ActivityWidget</class>
+ <widget class="QWidget" name="ActivityWidget">
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QLabel" name="labelName">
+     <property name="text">
+      <string>Название:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="name_edit">
+     <property name="placeholderText">
+      <string>Название занятия</string>
+     </property>
+    </widget>
+   </item>
+
+   <item>
+    <widget class="QLabel" name="labelType">
+     <property name="text">
+      <string>Вид:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="type_combo">
+     <item><property name="text"><string>Лекция</string></property></item>
+     <item><property name="text"><string>Практика</string></property></item>
+     <item><property name="text"><string>Самостоятельная работа</string></property></item>
+    </widget>
+   </item>
+
+   <item>
+    <widget class="QLabel" name="labelHours">
+     <property name="text">
+      <string>Часы:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QSpinBox" name="hours_spin">
+     <property name="maximum">
+      <number>1000</number>
+     </property>
+    </widget>
+   </item>
+
+   <item>
+    <widget class="QLabel" name="labelPresence">
+     <property name="text">
+      <string>Форма:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="presence_combo">
+     <item><property name="text"><string>Очно</string></property></item>
+     <item><property name="text"><string>СДО</string></property></item>
+     <item><property name="text"><string>Самостоятельная работа</string></property></item>
+    </widget>
+   </item>
+
+   <item>
+    <widget class="QPushButton" name="delete_btn">
+     <property name="text">
+      <string>Удалить</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SectionWidget</class>
+ <widget class="QWidget" name="SectionWidget">
+  <layout class="QVBoxLayout" name="mainLayout">
+
+   <!-- Header -->
+   <item>
+    <layout class="QHBoxLayout" name="headerLayout">
+
+     <item>
+      <widget class="QLabel" name="labelSection">
+       <property name="text">
+        <string>Раздел:</string>
+       </property>
+      </widget>
+     </item>
+
+     <item>
+      <widget class="QLineEdit" name="name_edit">
+       <property name="placeholderText">
+        <string>Название раздела</string>
+       </property>
+      </widget>
+     </item>
+
+     <item>
+      <widget class="QLabel" name="labelSemester">
+       <property name="text">
+        <string>Семестр:</string>
+       </property>
+      </widget>
+     </item>
+
+     <item>
+      <widget class="QComboBox" name="semester_combo"/>
+     </item>
+
+     <item>
+      <widget class="QPushButton" name="add_topic_btn">
+       <property name="text">
+        <string>+ Добавить тему</string>
+       </property>
+      </widget>
+     </item>
+
+     <item>
+      <widget class="QPushButton" name="delete_btn">
+       <property name="text">
+        <string>Удалить раздел</string>
+       </property>
+      </widget>
+     </item>
+
+     <item>
+      <spacer name="headerSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+
+    </layout>
+   </item>
+
+   <!-- Summary -->
+   <item>
+    <layout class="QHBoxLayout" name="summaryLayout">
+
+     <item>
+      <widget class="QLabel" name="summary_label">
+       <property name="text">
+        <string>Раздел:</string>
+       </property>
+      </widget>
+     </item>
+
+     <item>
+      <widget class="QLabel" name="section_lecture_label">
+       <property name="text">
+        <string>Лекции: 0</string>
+       </property>
+      </widget>
+     </item>
+
+     <item>
+      <widget class="QLabel" name="section_practice_label">
+       <property name="text">
+        <string>Практики: 0</string>
+       </property>
+      </widget>
+     </item>
+
+     <item>
+      <widget class="QLabel" name="section_self_study_label">
+       <property name="text">
+        <string>Сам.раб.: 0</string>
+       </property>
+      </widget>
+     </item>
+
+     <item>
+      <widget class="QLabel" name="section_sdo_label">
+       <property name="text">
+        <string>СДО: 0</string>
+       </property>
+      </widget>
+     </item>
+
+     <item>
+      <widget class="QLabel" name="section_total_label">
+       <property name="text">
+        <string>Всего: 0</string>
+       </property>
+      </widget>
+     </item>
+
+     <item>
+      <spacer name="summarySpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+
+    </layout>
+   </item>
+
+   <!-- Topics container -->
+   <item>
+    <layout class="QVBoxLayout" name="topics_container"/>
+   </item>
+
+  </layout>
+ </widget>
+
+ <resources/>
+ <connections/>
+</ui>
