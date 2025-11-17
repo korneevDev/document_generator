@@ -34,4 +34,9 @@ class Subject:
 
     exam_questions: ExamQuestions
 
-
+@dataclass
+class SubjectWithHours(Subject):
+    total_hours : int
+    total_hours_lectures : int
+    total_hours_practices : int
+    total_hours_self_works : int

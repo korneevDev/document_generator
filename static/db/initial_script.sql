@@ -96,7 +96,15 @@ CREATE TABLE Subject(
 	exam_time INT,
 	exam_cons_time INT,
 	room_id INT REFERENCES Room(id),
-	count_questions_in_test SMALLINT
+	count_questions_in_test SMALLINT,
+	total_hours INT,
+	kr_hours INT,
+	lections_hours INT,
+	practices_hours INT,
+	self_work_hours INT,
+	sdo_hours INT,
+	first_semester INT,
+	semesters_count INT
 );
 
 CREATE TABLE "Result"(
