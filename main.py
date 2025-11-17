@@ -5,7 +5,7 @@ from docxtpl import DocxTemplate
 
 from domain_types.chapters import Chapter, Theme, Lesson, SelfWorkTheme, SelfWorkPracticeTheme, PracticeLesson
 from domain_types.organization import Organization, Worker, Department
-from domain_types.subject import Subject, Room, Books, ExamQuestions
+from domain_types.subject import Subject, Room, Books, ExamQuestions, SubjectWithHours
 from view_types.doc_task_view_model import DocumentTaskView
 from view_types.program_view_model import ProgramViewModel
 from view_types.view_skill_type import SkillView, AimPersonalSkillsView, ProfessionalSkillsView, ResultsView
@@ -126,7 +126,7 @@ if __name__ == "__main__":
             'Программист',
             2,
         ),
-        Subject(
+        SubjectWithHours(
             'ОП.09',
             'Стандартизация, сертификация и метрология',
             True,
@@ -163,7 +163,11 @@ if __name__ == "__main__":
                 [
                     'Создайте в Windows 10 нового пользователя "audit_user" без прав администратора и установите для него квоту диска 500 МБ.',
                 ]
-            )
+            ),
+            10,
+            100,
+            200,
+            50
         ),
         AimPersonalSkillsView(
             [
@@ -281,7 +285,7 @@ if __name__ == "__main__":
     )
 
     generate_document_with_deletion(
-        "templates/cesi_template_op.docx",
+        "static/templates/cesi_template_op.docx",
         f"output/{docTask.subject.code}_{docTask.year}_{datetime.datetime.now().strftime('%H-%M-%S')}.docx",
         docTask.__dict__
     )

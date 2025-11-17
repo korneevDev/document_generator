@@ -101,7 +101,10 @@ CREATE TABLE Subject(
 	kr_hours INT,
 	lections_hours INT,
 	practices_hours INT,
-	self_work_hours INT
+	self_work_hours INT,
+	sdo_hours INT,
+	first_semester INT,
+	semesters_count INT
 );
 
 CREATE TABLE "Result"(
