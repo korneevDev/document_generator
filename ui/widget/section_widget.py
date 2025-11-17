@@ -1,7 +1,9 @@
-from PyQt6.QtWidgets import QWidget, QLineEdit, QComboBox, QPushButton, QLabel, QVBoxLayout
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QWidget, QLineEdit, QComboBox, QPushButton, QLabel, QVBoxLayout, QListWidget, \
+    QListWidgetItem
+from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6 import uic
 
+from domain_types.chapters import Chapter
 from ui.widget.topic_widget import TopicWidget
 
 
@@ -20,10 +22,10 @@ class SectionWidget(QWidget):
     section_total_label: QLabel
     topics_container: QVBoxLayout
 
-    def __init__(self, controller=None, base_ui_dir='./layout/'):
+    def __init__(self, numerator,  controller=None, base_ui_dir='./layout/'):
         super().__init__()
         self.controller = controller
-
+        self.numerator = numerator
         uic.loadUi(base_ui_dir + "section_widget.ui", self)
 
         self.topics: list[TopicWidget] = []
@@ -41,6 +43,15 @@ class SectionWidget(QWidget):
         self.add_topic()
 
     # -----------------------------------------------------------------
+
+    def get_data(self):
+        topics = []
+        for topic in self.topics:
+            topics.append(topic.get_data())
+
+        return Chapter(self.name_edit.text(), int(self.semester_combo.currentText()), topics)
+
+
 
     def _populate_semesters(self):
         self.semester_combo.clear()
@@ -67,7 +78,7 @@ class SectionWidget(QWidget):
     # -----------------------------------------------------------------
 
     def add_topic(self):
-        topic = TopicWidget(self)
+        topic = TopicWidget(self.numerator, self)
         topic.hoursChanged.connect(self.on_hours_changed)
 
         self.topics.append(topic)

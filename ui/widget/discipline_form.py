@@ -1,39 +1,51 @@
 from PyQt6 import uic
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget, QSpinBox, QLabel, QHBoxLayout, QMessageBox, QPushButton, QCheckBox, QVBoxLayout, \
-    QLineEdit
+    QLineEdit, QComboBox
 
+from domain_types.practice_numerator import PracticeNumerator
+from domain_types.subject import Subject
 from ui.widget.section_widget import SectionWidget
 from ui.widget.semester_summary_widget import SemesterSummaryWidget
 
 
 class DisciplineForm(QWidget):
-    discipline_name : QLineEdit
-    first_semester_spin : QSpinBox
-    semesters_count_spin : QSpinBox
-    total_hours : QSpinBox
-    lecture_hours : QSpinBox
-    practice_hours : QSpinBox
-    self_study_hours : QSpinBox
-    sdo_hours : QSpinBox
-    sdo_auto_checkbox : QCheckBox
-    apply_semesters_btn : QPushButton
-    add_section_btn : QPushButton
-    save_btn : QPushButton
+    discipline_name: QLineEdit
+    discipline_code: QLineEdit
+    first_semester_spin: QSpinBox
+    semesters_count_spin: QSpinBox
+    total_hours: QSpinBox
+    lecture_hours: QSpinBox
+    practice_hours: QSpinBox
+    self_study_hours: QSpinBox
+    sdo_hours: QSpinBox
+    sdo_auto_checkbox: QCheckBox
+    apply_semesters_btn: QPushButton
+    add_section_btn: QPushButton
+    save_btn: QPushButton
 
-    semester_container : QVBoxLayout
-    semester_summary_layout : QVBoxLayout
-    sections_container : QVBoxLayout
-    status_label : QLabel
+    discipline_is_require: QCheckBox
+    exam_type_combo_box: QComboBox
+    exam_cons_hours: QSpinBox
+    exam_hours: QSpinBox
+    course_hours: QSpinBox
+
+    semester_container: QVBoxLayout
+    semester_summary_layout: QVBoxLayout
+    sections_container: QVBoxLayout
+    status_label: QLabel
+    practice_numerator : PracticeNumerator
 
     def __init__(self, base_ui_dir='./layout/'):
         super().__init__()
 
-        uic.loadUi(base_ui_dir+'discipline_form.ui', self)
+        uic.loadUi(base_ui_dir + 'discipline_form.ui', self)
         self.sdo_auto_calculated = True
         self.semester_hours = {}
         self.semester_summary_widgets = {}
         self._semester_numbers = []
+
+        self.practice_numerator = PracticeNumerator()
 
         self.total_hours.valueChanged.connect(self.on_total_hours_changed)
         self.lecture_hours.valueChanged.connect(self.check_hours)
@@ -97,11 +109,16 @@ class DisciplineForm(QWidget):
             row = QHBoxLayout()
             lbl = QLabel(f"Семестр {num}:")
 
-            spin_lecture = QSpinBox(); spin_lecture.setMaximum(10000)
-            spin_practice = QSpinBox(); spin_practice.setMaximum(10000)
-            spin_self = QSpinBox(); spin_self.setMaximum(10000)
-            spin_sdo = QSpinBox(); spin_sdo.setMaximum(10000)
-            spin_total = QSpinBox(); spin_total.setMaximum(10000)
+            spin_lecture = QSpinBox();
+            spin_lecture.setMaximum(10000)
+            spin_practice = QSpinBox();
+            spin_practice.setMaximum(10000)
+            spin_self = QSpinBox();
+            spin_self.setMaximum(10000)
+            spin_sdo = QSpinBox();
+            spin_sdo.setMaximum(10000)
+            spin_total = QSpinBox();
+            spin_total.setMaximum(10000)
 
             # restore old values
             if num in old_values:
@@ -118,11 +135,16 @@ class DisciplineForm(QWidget):
             spin_total.valueChanged.connect(self.check_hours)
 
             row.addWidget(lbl)
-            row.addWidget(QLabel("Лекции:")); row.addWidget(spin_lecture)
-            row.addWidget(QLabel("Практики:")); row.addWidget(spin_practice)
-            row.addWidget(QLabel("Сам.раб.:")); row.addWidget(spin_self)
-            row.addWidget(QLabel("СДО:")); row.addWidget(spin_sdo)
-            row.addWidget(QLabel("Всего:")); row.addWidget(spin_total)
+            row.addWidget(QLabel("Лекции:"));
+            row.addWidget(spin_lecture)
+            row.addWidget(QLabel("Практики:"));
+            row.addWidget(spin_practice)
+            row.addWidget(QLabel("Сам.раб.:"));
+            row.addWidget(spin_self)
+            row.addWidget(QLabel("СДО:"));
+            row.addWidget(spin_sdo)
+            row.addWidget(QLabel("Всего:"));
+            row.addWidget(spin_total)
             row.addStretch()
 
             self.semester_container.addLayout(row)
@@ -151,7 +173,7 @@ class DisciplineForm(QWidget):
 
     # ====================== Sections =========================
     def add_section(self):
-        section = SectionWidget(controller=self)
+        section = SectionWidget(controller=self, numerator=self.practice_numerator)
         section.hoursChanged.connect(self.check_hours)
         self.sections.append(section)
         self.sections_container.addWidget(section)
@@ -174,7 +196,6 @@ class DisciplineForm(QWidget):
             self.sdo_auto_calculated = False
             self.sdo_hours.setEnabled(True)
 
-
     def on_total_hours_changed(self, value):
         if self.sdo_auto_calculated:
             auto_sdo = round(value * 0.25)
@@ -186,7 +207,8 @@ class DisciplineForm(QWidget):
 
     # ====================== Check Hours =========================
     def check_hours(self):
-        semester_aggregates = {num: {'lecture':0, 'practice':0, 'self_study':0, 'sdo':0} for num in self._semester_numbers}
+        semester_aggregates = {num: {'lecture': 0, 'practice': 0, 'self_study': 0, 'sdo': 0} for num in
+                               self._semester_numbers}
 
         # aggregate from sections
         for section in self.sections:
@@ -228,7 +250,8 @@ class DisciplineForm(QWidget):
         boxes = self.semester_hours[sem_num]
         boxes['lecture'].setStyleSheet("" if used['lecture'] == planned['lecture'] else "background-color: #ffdddd;")
         boxes['practice'].setStyleSheet("" if used['practice'] == planned['practice'] else "background-color: #ffdddd;")
-        boxes['self_study'].setStyleSheet("" if used['self_study'] == planned['self_study'] else "background-color: #ffdddd;")
+        boxes['self_study'].setStyleSheet(
+            "" if used['self_study'] == planned['self_study'] else "background-color: #ffdddd;")
         boxes['sdo'].setStyleSheet("" if used['sdo'] == planned['sdo'] else "background-color: #ffdddd;")
         used_total = used['lecture'] + used['practice'] + used['self_study']
         boxes['total'].setStyleSheet("" if used_total == planned['total'] else "background-color: #ffdddd;")
@@ -273,7 +296,8 @@ class DisciplineForm(QWidget):
             errors.append(f"Ошибка: общие часы дисциплины ({declared_total}) ≠ суммы по семестрам ({planned_total})")
 
         if declared_total != fact_total:
-            errors.append(f"Ошибка: общие часы дисциплины ({declared_total}) ≠ фактически распределённым ({fact_total})")
+            errors.append(
+                f"Ошибка: общие часы дисциплины ({declared_total}) ≠ фактически распределённым ({fact_total})")
 
         if fact_total != planned_total:
             errors.append(f"Ошибка: фактически распределено ({fact_total}) ≠ плану по семестрам ({planned_total})")
@@ -306,5 +330,19 @@ class DisciplineForm(QWidget):
         """
         msg = QMessageBox()
         msg.setWindowTitle("Сохранение")
+
+        subject = Subject(self.discipline_code.text(), self.discipline_name.text(),
+                          self.discipline_is_require.checkState() == Qt.CheckState.Checked,
+                          self.exam_type_combo_box.currentText() == 'Экзамен', self.exam_hours.value(), self.exam_cons_hours.value(), None, None, None, None)
+
+        print(subject)
+
+        chapters = []
+
+        for section in self.sections:
+            chapters.append(section.get_data())
+
+        print(chapters)
+
         msg.setText("Программа успешно сохранена!")
         msg.exec()
