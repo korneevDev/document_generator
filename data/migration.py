@@ -104,6 +104,7 @@ if __name__ == "__main__":
         'fill_organizations_script.sql',
         'fill_workers_script.sql',
         'fill_departments_script.sql',
+        'fill_rooms_script.sql',
     ]
     # Список скриптов для выполнения
 

@@ -20,4 +20,4 @@ class Department:
 @dataclass
 class Organization:
     name: str
-    sity: str
+    city: str

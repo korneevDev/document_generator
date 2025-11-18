@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS InventoryRoom;
 DROP TABLE IF EXISTS InventorySubject;
 DROP TABLE IF EXISTS ExamQuestion;
 DROP TABLE IF EXISTS "Result";
+DROP TABLE IF EXISTS SubjectYear;
 DROP TABLE IF EXISTS Subject;
 DROP TABLE IF EXISTS Room;
 DROP TABLE IF EXISTS Inventory;
@@ -83,7 +84,7 @@ CREATE TABLE Inventory(
 
 CREATE TABLE Room(
 	id SERIAL PRIMARY KEY,
-	name VARCHAR(200)
+	name VARCHAR(500)
 );
 
 CREATE TABLE Subject(
@@ -92,10 +93,15 @@ CREATE TABLE Subject(
 	code VARCHAR(10),
 	name VARCHAR(500),
 	is_required BOOL,
+	room_id INT REFERENCES Room(id)
+);
+
+CREATE TABLE SubjectYear(
+	id SERIAL PRIMARY KEY,
+	subject_id INT REFERENCES Subject(id),
 	is_exam BOOL,
 	exam_time INT,
 	exam_cons_time INT,
-	room_id INT REFERENCES Room(id),
 	count_questions_in_test SMALLINT,
 	total_hours INT,
 	kr_hours INT,
@@ -123,7 +129,7 @@ CREATE TABLE ExamQuestion(
 
 CREATE TABLE InventoryRoom(
 	id SERIAL PRIMARY KEY,
-	invenory_id INT REFERENCES Inventory(id),
+	inventory_id INT REFERENCES Inventory(id),
 	room_id INT REFERENCES Room(id)
 );
 

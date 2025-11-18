@@ -5,7 +5,7 @@ from docxtpl import DocxTemplate
 
 from domain_types.chapters import Chapter, Theme, Lesson, SelfWorkTheme, SelfWorkPracticeTheme, PracticeLesson
 from domain_types.organization import Organization, Worker, Department
-from domain_types.subject import Subject, Room, Books, ExamQuestions, SubjectWithHours
+from domain_types.subject import Subject, Room, Books, ExamQuestions, SubjectYear
 from view_types.doc_task_view_model import DocumentTaskView
 from view_types.program_view_model import ProgramViewModel
 from view_types.view_skill_type import SkillView, AimPersonalSkillsView, ProfessionalSkillsView, ResultsView
@@ -126,13 +126,10 @@ if __name__ == "__main__":
             'Программист',
             2,
         ),
-        SubjectWithHours(
+        SubjectYear(
             'ОП.09',
             'Стандартизация, сертификация и метрология',
             True,
-            False,
-            2,
-            0,
             Room(
                 'Общепрофессиональных дисциплин и профессиональных модулей',
                 [
@@ -153,6 +150,9 @@ if __name__ == "__main__":
                 ],
                 ['Мега источник', 'Вау, копец какой источник']
             ),
+            False,
+            2,
+            0,
             ExamQuestions(
                 2,
                 [
