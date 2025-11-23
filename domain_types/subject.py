@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from domain_types.chapters import Chapter
+
 
 @dataclass
 class Room:
@@ -20,6 +22,7 @@ class ExamQuestions:
 
 @dataclass
 class Subject:
+    type: str
     code: str
     name: str
     is_required: bool
@@ -28,9 +31,12 @@ class Subject:
 
     books: Books
 
+    exam_questions : ExamQuestions
+
 
 @dataclass
 class SubjectYear(Subject):
+    year: int
     is_exam: bool
     exam_time: int
     exam_cons_time: int
@@ -39,4 +45,6 @@ class SubjectYear(Subject):
     total_hours_lectures: int
     total_hours_practices: int
     total_hours_self_works: int
+
+    chapters: list[Chapter]
 

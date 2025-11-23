@@ -16,5 +16,6 @@ class ProgramViewModel:
     name: str
     fgos_number: int
     fgos_start: str
-    profile: str | None = None
-    profile_code: int | None = None
+
+    def __str__(self):
+        return f'{self.code} {self.name}'

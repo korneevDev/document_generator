@@ -3,6 +3,8 @@ import os
 import logging
 from pathlib import Path
 
+from parser import fgos_parser
+
 
 class PostgresScriptRunner:
     def __init__(self, host, database, user, password, port=5432, scripts_folder='../static/db'):
@@ -99,12 +101,18 @@ if __name__ == "__main__":
     )
     # Настройки
 
+    runner.execute_scripts(['initial_script.sql'], stop_on_error=True)
+
+    pdf_path = "../static/fgos_docs/09_02_07.pdf"
+    fgos_parser.parse_fgos(pdf_path)
+
     scripts = [
-        'initial_script.sql',
         'fill_organizations_script.sql',
         'fill_workers_script.sql',
         'fill_departments_script.sql',
         'fill_rooms_script.sql',
+        'add_subjects.sql',
+        'fill_results_script.sql'
     ]
     # Список скриптов для выполнения
 

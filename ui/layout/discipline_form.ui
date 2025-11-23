@@ -14,6 +14,16 @@
             <item>
                 <layout class="QHBoxLayout" name="infoLayout">
                     <item>
+                        <widget class="QLabel" name="yearLabel">
+                            <property name="text">
+                                <string>Год:</string>
+                            </property>
+                        </widget>
+                    </item>
+                    <item>
+                        <widget class="QLineEdit" name="year_edit"/>
+                    </item>
+                    <item>
                         <widget class="QLabel" name="codeLabelDiscipline">
                             <property name="text">
                                 <string>Код дисциплины:</string>

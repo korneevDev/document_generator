@@ -3,17 +3,11 @@ from collections import defaultdict
 from dataclasses import dataclass
 
 import pdfplumber
-import psycopg2
 from datetime import datetime
 
+from data import repository
 from domain_types.program import Program
 from domain_types.skills import Skill, CommonProfSkills, ProfessionalSkills
-
-
-# === 1. Настройки подключения к БД ===
-
-
-# === 2. Функции для извлечения данных из PDF ===
 
 @dataclass
 class PdfParser:
@@ -121,36 +115,6 @@ class PdfParser:
 
         return CommonProfSkills(ok_list, prof_list)
 
-
-# === 3. Сохранение в базу ===
-
-def save_to_table_with_returning_id(cursor, data: dict[str], table_name):
-    fields = [f'"{field}"' for field in data]
-    query = f"""INSERT INTO {table_name} ({', '.join(fields)}) 
-                    VALUES ({', '.join(['%s'] * len(fields))}) 
-                    RETURNING id"""
-
-    values = tuple(data.values())
-    cursor.execute(query, values)
-    return cursor.fetchone()[0]
-
-
-def save_fgos_program_data(cursor, program: Program, link="https://fgos.ru"):
-    fgos_data = program.get_fgos_data_to_db() | {'doc_link': link}
-    fgos_id = save_to_table_with_returning_id(cursor, fgos_data, 'Fgos')
-
-    program_data = program.get_program_data_to_db() | {'fgos_id': fgos_id}
-    program_id = save_to_table_with_returning_id(cursor, program_data, '"Program"')
-
-    return program_id
-
-
-def save_skills(cursor, program_id, skills: CommonProfSkills):
-    skills_data = skills.get_db_list(program_id, save_to_table_with_returning_id, cursor, 'Skill')
-    print(skills_data)
-    for skill_data in skills_data:
-        save_to_table_with_returning_id(cursor, skill_data, 'Skill')
-
 def parse_fgos(pdf_path):
     parser = PdfParser(pdf_path)
 
@@ -159,21 +123,7 @@ def parse_fgos(pdf_path):
     program = parser.extract_fgos_info()
     skills = parser.parse_skills()
 
-    conn = psycopg2.connect(
-        dbname="doc_generator_db",
-        user="postgres",
-        password="root",
-        host="localhost",
-        port="5433"
-    )
-    cursor = conn.cursor()
-
-    program_id = save_fgos_program_data(cursor, program, pdf_path)
-    save_skills(cursor, program_id, skills)
-
-    conn.commit()
-    cursor.close()
-    conn.close()
+    repository.save_fgos(program, skills, pdf_path)
 
 
 if __name__ == "__main__":

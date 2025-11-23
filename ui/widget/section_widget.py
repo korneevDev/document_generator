@@ -22,8 +22,9 @@ class SectionWidget(QWidget):
     section_total_label: QLabel
     topics_container: QVBoxLayout
 
-    def __init__(self, numerator,  controller=None, base_ui_dir='./layout/'):
+    def __init__(self, numerator, subject, controller=None, base_ui_dir='./layout/'):
         super().__init__()
+        self.subject = subject
         self.controller = controller
         self.numerator = numerator
         uic.loadUi(base_ui_dir + "section_widget.ui", self)
@@ -56,7 +57,7 @@ class SectionWidget(QWidget):
     def _populate_semesters(self):
         self.semester_combo.clear()
 
-        parent = self.parent()
+        parent = self.controller
         if parent and hasattr(parent, "get_semester_numbers"):
             nums = parent.get_semester_numbers()
             for n in nums:
@@ -78,7 +79,7 @@ class SectionWidget(QWidget):
     # -----------------------------------------------------------------
 
     def add_topic(self):
-        topic = TopicWidget(self.numerator, self)
+        topic = TopicWidget(self.numerator, self.subject)
         topic.hoursChanged.connect(self.on_hours_changed)
 
         self.topics.append(topic)

@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS SubjectSkills;
 DROP TABLE IF EXISTS ThemeSkills;
 DROP TABLE IF EXISTS Lesson;
 DROP TABLE IF EXISTS Theme;
@@ -93,7 +94,8 @@ CREATE TABLE Subject(
 	code VARCHAR(10),
 	name VARCHAR(500),
 	is_required BOOL,
-	room_id INT REFERENCES Room(id)
+	room_id INT REFERENCES Room(id),
+	program_id INT REFERENCES "Program"(id)
 );
 
 CREATE TABLE SubjectYear(
@@ -117,7 +119,7 @@ CREATE TABLE "Result"(
 	id SERIAL PRIMARY KEY,
 	"type" VARCHAR(20),
 	name VARCHAR(500),
-	subject_id INT REFERENCES Subject(id)
+	skill_id INT REFERENCES Skill(id)
 );
 
 CREATE TABLE ExamQuestion(
@@ -135,13 +137,13 @@ CREATE TABLE InventoryRoom(
 
 CREATE TABLE InventorySubject(
 	id SERIAL PRIMARY KEY,
-	invenory_id INT REFERENCES Inventory(id),
+	inventory_id INT REFERENCES Inventory(id),
 	subject_id INT REFERENCES Subject(id)
 );
 
 CREATE TABLE Book(
 	id SERIAL PRIMARY KEY,
-	subject_id INT REFERENCES Subject(id),
+	subject_id INT REFERENCES SubjectYear(id),
 	"type" VARCHAR(10),
 	"link" VARCHAR(500)
 );
@@ -172,5 +174,11 @@ CREATE TABLE Lesson(
 	"hour" SMALLINT,
 	"number" SMALLINT,
 	theme_id INT REFERENCES Theme(id)
+);
+
+CREATE TABLE SubjectSkills(
+	id SERIAL PRIMARY KEY,
+	subject_id INT REFERENCES Subject(id),
+	skill_id INT REFERENCES Skill(id)
 );
 

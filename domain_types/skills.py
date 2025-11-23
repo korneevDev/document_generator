@@ -1,4 +1,13 @@
+import itertools
 from dataclasses import dataclass
+
+from view_types.view_skill_type import CommonProfSkillsView, SkillView, ProfessionalSkillsView
+
+
+@dataclass
+class Results:
+    skill: list[str]
+    knowledge: list[str]
 
 
 @dataclass
@@ -25,10 +34,17 @@ class Skill:
     def __hash__(self):
         return self.type.__hash__() + self.code.__hash__()
 
+    def __str__(self):
+        return f'{self.type} {self.code}'
+
+    def map_to_view(self):
+        return SkillView(f'{self.type} {self.code}', self.name)
+
 
 @dataclass
 class ProfessionalSkills(Skill):
     skills: list[Skill]
+    results: Results = None
 
     def get_db_list(self, program_id: int, func_get_lesson_id, cursor, table_name):
         activity_id = func_get_lesson_id(
@@ -47,11 +63,20 @@ class ProfessionalSkills(Skill):
             for skill in self.skills
         ]
 
+    def to_str_list(self):
+        return [str(Skill(self.type, self.code, self.name))] + [str(skill) for skill in self.skills]
+
+    def map_to_view(self):
+        return ProfessionalSkillsView(self.code, self.name, [it.map_to_view() for it in  self.skills])
+
 
 @dataclass
 class CommonProfSkills:
     common: list[Skill]
     professional: list[ProfessionalSkills]
+
+    def get_activity_code(self):
+        return [skill.code for skill in self.professional]
 
     def get_db_list(self, program_id: int, func_get_activity_id, cursor, table_name):
         result = []
@@ -65,6 +90,20 @@ class CommonProfSkills:
             }
             for skill in self.common
         ]
+
+    def to_str_list(self):
+        return [str(com) for com in self.common] + [str(prof) for prof in self.professional]
+
+    def map_to_view(self):
+        return CommonProfSkillsView(common=[s.map_to_view() for s in self.common], professional=self.professional[0].map_to_view())
+
+    def map_to_list_view(self):
+        com = [str(it) for it in self.common]
+        prof = []
+
+        for it in self.professional:
+            prof.extend(it.to_str_list())
+        return com + prof
 
 
 @dataclass
@@ -93,9 +132,3 @@ class AimPersonalSkills(PersonalSkills):
                 }
                 for skill in self.aim
             ]
-
-
-@dataclass
-class Results:
-    skill: list[str]
-    knowledge: list[str]

@@ -3,8 +3,11 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget, QSpinBox, QLabel, QHBoxLayout, QMessageBox, QPushButton, QCheckBox, QVBoxLayout, \
     QLineEdit, QComboBox
 
+from data import repository
 from domain_types.practice_numerator import PracticeNumerator
-from domain_types.subject import Subject
+from domain_types.skills import CommonProfSkills
+from domain_types.subject import Subject, SubjectYear
+from ui.print_window import DocumentTaskWindow
 from ui.widget.section_widget import SectionWidget
 from ui.widget.semester_summary_widget import SemesterSummaryWidget
 
@@ -34,11 +37,14 @@ class DisciplineForm(QWidget):
     semester_summary_layout: QVBoxLayout
     sections_container: QVBoxLayout
     status_label: QLabel
-    practice_numerator : PracticeNumerator
+    practice_numerator: PracticeNumerator
+    year_edit : QLineEdit
 
-    def __init__(self, base_ui_dir='./layout/'):
+    def __init__(self, subject, base_ui_dir='./layout/'):
         super().__init__()
 
+        self.subject = subject
+        self.skills = repository.load_skills_subject(subject)
         uic.loadUi(base_ui_dir + 'discipline_form.ui', self)
         self.sdo_auto_calculated = True
         self.semester_hours = {}
@@ -60,15 +66,24 @@ class DisciplineForm(QWidget):
 
         self.sections = []
 
+        self.year_edit.setText('2025')
+
+        self.fill_data()
         # initialize semesters and one section
         self.build_semesters()
         self.add_section()
 
         self.on_sdo_auto_changed(2)
 
-    def fill_data(self, name):
-        self.discipline_name.setText(name)
+    def fill_data(self):
+        self.discipline_name.setText(self.subject.name)
         self.discipline_name.setEnabled(False)
+
+        self.discipline_is_require.setChecked(self.subject.is_required)
+        self.discipline_is_require.setEnabled(False)
+
+        self.discipline_code.setText(f'{self.subject.type} {self.subject.code}')
+        self.discipline_code.setEnabled(False)
 
     def clear_layout(self, layout):
         while layout.count():
@@ -157,9 +172,9 @@ class DisciplineForm(QWidget):
                 'total': spin_total
             }
 
-            summary_widget = SemesterSummaryWidget(num)
-            self.semester_summary_widgets[num] = summary_widget
-            self.semester_summary_layout.addWidget(summary_widget)
+          #  summary_widget = SemesterSummaryWidget(num)
+          #  self.semester_summary_widgets[num] = summary_widget
+          #  self.semester_summary_layout.addWidget(summary_widget)
 
         # update sections' semester combo boxes
         for section in self.sections:
@@ -173,7 +188,7 @@ class DisciplineForm(QWidget):
 
     # ====================== Sections =========================
     def add_section(self):
-        section = SectionWidget(controller=self, numerator=self.practice_numerator)
+        section = SectionWidget(controller=self, numerator=self.practice_numerator, subject=self.subject)
         section.hoursChanged.connect(self.check_hours)
         self.sections.append(section)
         self.sections_container.addWidget(section)
@@ -331,12 +346,6 @@ class DisciplineForm(QWidget):
         msg = QMessageBox()
         msg.setWindowTitle("Сохранение")
 
-        subject = Subject(self.discipline_code.text(), self.discipline_name.text(),
-                          self.discipline_is_require.checkState() == Qt.CheckState.Checked,
-                          self.exam_type_combo_box.currentText() == 'Экзамен', self.exam_hours.value(), self.exam_cons_hours.value(), None, None, None, None)
-
-        print(subject)
-
         chapters = []
 
         for section in self.sections:
@@ -344,5 +353,32 @@ class DisciplineForm(QWidget):
 
         print(chapters)
 
-        msg.setText("Программа успешно сохранена!")
-        msg.exec()
+        subject = SubjectYear(
+            type=self.subject.type,
+            code=self.subject.code,
+            name=self.subject.name,
+            is_required=self.subject.is_required,
+            room=self.subject.room,
+            add_inventory=self.subject.add_inventory,
+            books=self.subject.books,
+            year=int(self.year_edit.text()),
+            is_exam= self.exam_type_combo_box.currentText() == 'Экзамен',
+            exam_time=self.exam_hours.value(),
+            exam_cons_time=self.exam_cons_hours.value(),
+            total_hours=self.total_hours.value(),
+            total_hours_self_works=self.self_study_hours.value(),
+            total_hours_lectures=self.lecture_hours.value(),
+            total_hours_practices=self.practice_hours.value(),
+            chapters=chapters,
+            exam_questions=self.subject.exam_questions
+        )
+        print(subject)
+
+        skills = repository.load_skills_subject(subject)
+        results = repository.load_results_skill(subject, skills.get_activity_code())
+
+        self.doc_task_window = DocumentTaskWindow()
+        self.doc_task_window.set_subject(subject, skills, results)
+        self.doc_task_window.show()
+
+

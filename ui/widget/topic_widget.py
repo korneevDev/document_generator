@@ -2,7 +2,9 @@ from PyQt6.QtWidgets import QWidget, QLineEdit, QPushButton, QVBoxLayout, QLabel
 from PyQt6.QtCore import pyqtSignal
 from PyQt6 import uic
 
+from data import repository
 from domain_types.chapters import Theme, SelfWorkPracticeTheme, PracticeTheme, SelfWorkTheme
+from domain_types.subject import Subject
 from ui.widget.activity_widget import ActivityWidget
 
 
@@ -20,14 +22,13 @@ class TopicWidget(QWidget):
     activities_container: QVBoxLayout
     competencies_list : QListWidget
 
-    def __init__(self, numerator, parent=None,  base_ui_dir='./layout/'):
+    def __init__(self, numerator, subject: Subject, parent=None,  base_ui_dir='./layout/'):
         super().__init__(parent)
-
         uic.loadUi(base_ui_dir+"topic_widget.ui", self)
         self.numerator = numerator
         self.activities: list[ActivityWidget] = []
 
-        self.load_competencies(["ОПК 1", "ОПК 2", "ПК 1.1", "ПК 1.2"])
+        self.load_competencies(repository.load_skills_subject(subject).map_to_list_view())
 
         # Привязка сигналов
         self.name_edit.textChanged.connect(self.on_hours_changed)
